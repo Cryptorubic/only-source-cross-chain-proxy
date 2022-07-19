@@ -13,10 +13,11 @@ pragma solidity ^0.8.10;
 
 */
 
-import 'rubic-bridge-base/contracts/tokens/MultipleTransitToken.sol';
 import 'rubic-bridge-base/contracts/architecture/OnlySourceFunctionality.sol';
+import 'rubic-bridge-base/contracts/libraries/SmartApprove.sol';
 
 error DifferentAmountSpent();
+error RouterNotAvailable();
 
 /**
     @title RubicProxy
@@ -24,11 +25,9 @@ error DifferentAmountSpent();
     @author George Eliseev
     @notice Universal proxy contract to Symbiosis, LiFi, deBridge and other cross-chain solutions
  */
-contract RubicProxy is MultipleTransitToken, OnlySourceFunctionality {
+contract RubicProxy is OnlySourceFunctionality {
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     using SafeERC20Upgradeable for IERC20Upgradeable;
-
-    address public deBridgeRouter;
 
     constructor(
         uint256 _fixedCryptoFee,
@@ -36,8 +35,7 @@ contract RubicProxy is MultipleTransitToken, OnlySourceFunctionality {
         address[] memory _tokens,
         uint256[] memory _minTokenAmounts,
         uint256[] memory _maxTokenAmounts,
-        uint256 _RubicPlatformFee,
-        address _deBridgeRouter
+        uint256 _RubicPlatformFee
     ) {
         initialize(
             _fixedCryptoFee,
@@ -45,8 +43,7 @@ contract RubicProxy is MultipleTransitToken, OnlySourceFunctionality {
             _tokens,
             _minTokenAmounts,
             _maxTokenAmounts,
-            _RubicPlatformFee,
-            _deBridgeRouter
+            _RubicPlatformFee
         );
     }
 
@@ -56,30 +53,43 @@ contract RubicProxy is MultipleTransitToken, OnlySourceFunctionality {
         address[] memory _tokens,
         uint256[] memory _minTokenAmounts,
         uint256[] memory _maxTokenAmounts,
-        uint256 _RubicPlatformFee,
-        address _deBridgeRouter
+        uint256 _RubicPlatformFee
     ) private initializer {
-        __BridgeBaseInit(_fixedCryptoFee, _routers);
-        __MultipleTransitTokenInitUnchained(_tokens, _minTokenAmounts, _maxTokenAmounts);
-
-        __OnlySourceFunctionalityInitUnchained(_RubicPlatformFee);
-
-        deBridgeRouter = _deBridgeRouter;
-
-        _setupRole(MANAGER_ROLE, msg.sender);
+        __OnlySourceFunctionalityInit(
+            _fixedCryptoFee,
+            _routers,
+            _tokens,
+            _minTokenAmounts,
+            _maxTokenAmounts,
+            _RubicPlatformFee
+        );
     }
 
-    function providerCall(BaseCrossChainParams calldata _params, /** address _router, address _gateway,*/ bytes calldata _data)
+    function providerCall(
+        BaseCrossChainParams calldata _params,
+        address _router,
+        address _gateway,
+        bytes calldata _data
+    )
         external
         payable
         nonReentrant
         whenNotPaused
-        EventEmitter(_params)
+        eventEmitter(_params)
     {
+//        if (!availableRouters.contains(_router) || !availableRouters.contains(_gateway)) {
+//            revert('');
+//        }
+//        cheaper?
+        if (!(availableRouters.contains(_router) && availableRouters.contains(_gateway))) {
+            revert RouterNotAvailable();
+        }
+
         IntegratorFeeInfo memory _info = integratorToFeeInfo[_params.integrator];
 
-        uint256 _providerFee = msg.value - accrueFixedCryptoFee(_params.integrator, _info); // collect fixed fee
         IERC20Upgradeable(_params.srcInputToken).safeTransferFrom(msg.sender, address(this), _params.srcInputAmount);
+
+        //uint256 _providerFee = msg.value - accrueFixedCryptoFee(_params.integrator, _info); // collect fixed fee
 
         uint256 _amountIn = accrueTokenFees(
             _params.integrator,
@@ -89,56 +99,46 @@ contract RubicProxy is MultipleTransitToken, OnlySourceFunctionality {
             _params.srcInputToken
         );
 
-//        if (!availableRouters.contains(_router) || !availableRouters.contains(_gateway)) {
-//            revert('');
-//        }
-//        cheaper?
-//        if (!(availableRouters.contains(_router) && availableRouters.contains(_gateway))) {
-//            revert('');
-//        }
-
-        smartApprove(_params.srcInputToken, _params.srcInputAmount, deBridgeRouter);
+        SmartApprove.smartApprove(_params.srcInputToken, _amountIn, _gateway);
 
         uint256 balanceBefore = IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this));
 
-        AddressUpgradeable.functionCallWithValue(deBridgeRouter, _data, _providerFee);
+        AddressUpgradeable.functionCallWithValue(_router, _data, accrueFixedCryptoFee(_params.integrator, _info));
 
         if (balanceBefore - IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this)) != _amountIn) {
             revert DifferentAmountSpent();
         }
     }
 
-    function providerCallNative(BaseCrossChainParams calldata _params, bytes calldata _data)
+    function providerCallNative(
+        BaseCrossChainParams calldata _params,
+        address _router,
+        bytes calldata _data
+    )
         external
         payable
         nonReentrant
         whenNotPaused
-        EventEmitter(_params)
+        eventEmitter(_params)
     {
+        if (!availableRouters.contains(_router)) {
+            revert RouterNotAvailable();
+        }
+
+        IntegratorFeeInfo memory _info = integratorToFeeInfo[_params.integrator];
+
         uint256 _amountIn = accrueTokenFees(
             _params.integrator,
-            integratorToFeeInfo[_params.integrator],
-            msg.value - accrueFixedCryptoFee(_params.integrator, integratorToFeeInfo[_params.integrator]), // amountIn - fixedFee - commission
+            _info,
+            accrueFixedCryptoFee(_params.integrator, _info),
             0,
             address(0)
         );
 
-        AddressUpgradeable.functionCallWithValue(deBridgeRouter, _data, _amountIn);
-    }
-
-    function _calculateFee(
-        IntegratorFeeInfo memory _info,
-        uint256 _amountWithFee,
-        uint256
-    ) internal view override(BridgeBase, OnlySourceFunctionality) returns (uint256 _totalFee, uint256 _RubicFee) {
-        (_totalFee, _RubicFee) = OnlySourceFunctionality._calculateFee(_info, _amountWithFee, 0);
-    }
-
-    function setdeBridgeRouter(address _deBridgeRouter) external onlyManagerAndAdmin {
-        deBridgeRouter = _deBridgeRouter;
+        AddressUpgradeable.functionCallWithValue(_router, _data, _amountIn);
     }
 
     function sweepTokens(address _token, uint256 _amount) external onlyAdmin {
-        _sendToken(_token, _amount, msg.sender);
+        sendToken(_token, _amount, msg.sender);
     }
 }
