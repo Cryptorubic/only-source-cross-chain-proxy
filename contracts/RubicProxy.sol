@@ -65,9 +65,8 @@ contract RubicProxy is OnlySourceFunctionality {
         );
     }
 
-    function providerCall(
+    function routerCall(
         BaseCrossChainParams calldata _params,
-        address _router,
         address _gateway,
         bytes calldata _data
     )
@@ -77,19 +76,12 @@ contract RubicProxy is OnlySourceFunctionality {
         whenNotPaused
         eventEmitter(_params)
     {
-//        if (!availableRouters.contains(_router) || !availableRouters.contains(_gateway)) {
-//            revert('');
-//        }
-//        cheaper?
         if (!(availableRouters.contains(_router) && availableRouters.contains(_gateway))) {
             revert RouterNotAvailable();
         }
-
-        IntegratorFeeInfo memory _info = integratorToFeeInfo[_params.integrator];
-
         IERC20Upgradeable(_params.srcInputToken).safeTransferFrom(msg.sender, address(this), _params.srcInputAmount);
 
-        //uint256 _providerFee = msg.value - accrueFixedCryptoFee(_params.integrator, _info); // collect fixed fee
+        IntegratorFeeInfo memory _info = integratorToFeeInfo[_params.integrator];
 
         uint256 _amountIn = accrueTokenFees(
             _params.integrator,
@@ -103,16 +95,15 @@ contract RubicProxy is OnlySourceFunctionality {
 
         uint256 balanceBefore = IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this));
 
-        AddressUpgradeable.functionCallWithValue(_router, _data, accrueFixedCryptoFee(_params.integrator, _info));
+        AddressUpgradeable.functionCallWithValue(_params.router, _data, accrueFixedCryptoFee(_params.integrator, _info));
 
         if (balanceBefore - IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this)) != _amountIn) {
             revert DifferentAmountSpent();
         }
     }
 
-    function providerCallNative(
+    function routerCallNative(
         BaseCrossChainParams calldata _params,
-        address _router,
         bytes calldata _data
     )
         external
@@ -121,7 +112,7 @@ contract RubicProxy is OnlySourceFunctionality {
         whenNotPaused
         eventEmitter(_params)
     {
-        if (!availableRouters.contains(_router)) {
+        if (!availableRouters.contains(_params.router)) {
             revert RouterNotAvailable();
         }
 

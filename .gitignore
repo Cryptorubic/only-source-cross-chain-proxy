@@ -4,4 +4,5 @@ typechain
 artifacts
 cache
 node_modules
+config
 .idea
