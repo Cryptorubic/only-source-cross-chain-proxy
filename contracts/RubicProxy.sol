@@ -76,7 +76,7 @@ contract RubicProxy is OnlySourceFunctionality {
         whenNotPaused
         eventEmitter(_params)
     {
-        if (!(availableRouters.contains(_router) && availableRouters.contains(_gateway))) {
+        if (!(availableRouters.contains(_params.router) && availableRouters.contains(_gateway))) {
             revert RouterNotAvailable();
         }
         IERC20Upgradeable(_params.srcInputToken).safeTransferFrom(msg.sender, address(this), _params.srcInputAmount);
@@ -126,7 +126,7 @@ contract RubicProxy is OnlySourceFunctionality {
             address(0)
         );
 
-        AddressUpgradeable.functionCallWithValue(_router, _data, _amountIn);
+        AddressUpgradeable.functionCallWithValue(_params.router, _data, _amountIn);
     }
 
     function sweepTokens(address _token, uint256 _amount) external onlyAdmin {
