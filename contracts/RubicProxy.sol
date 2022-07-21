@@ -31,37 +31,30 @@ contract RubicProxy is OnlySourceFunctionality {
 
     constructor(
         uint256 _fixedCryptoFee,
+        uint256 _RubicPlatformFee,
         address[] memory _routers,
         address[] memory _tokens,
         uint256[] memory _minTokenAmounts,
-        uint256[] memory _maxTokenAmounts,
-        uint256 _RubicPlatformFee
+        uint256[] memory _maxTokenAmounts
     ) {
-        initialize(
-            _fixedCryptoFee,
-            _routers,
-            _tokens,
-            _minTokenAmounts,
-            _maxTokenAmounts,
-            _RubicPlatformFee
-        );
+        initialize(_fixedCryptoFee, _RubicPlatformFee, _routers, _tokens, _minTokenAmounts, _maxTokenAmounts);
     }
 
     function initialize(
         uint256 _fixedCryptoFee,
+        uint256 _RubicPlatformFee,
         address[] memory _routers,
         address[] memory _tokens,
         uint256[] memory _minTokenAmounts,
-        uint256[] memory _maxTokenAmounts,
-        uint256 _RubicPlatformFee
+        uint256[] memory _maxTokenAmounts
     ) private initializer {
         __OnlySourceFunctionalityInit(
             _fixedCryptoFee,
+            _RubicPlatformFee,
             _routers,
             _tokens,
             _minTokenAmounts,
-            _maxTokenAmounts,
-            _RubicPlatformFee
+            _maxTokenAmounts
         );
     }
 
@@ -69,13 +62,7 @@ contract RubicProxy is OnlySourceFunctionality {
         BaseCrossChainParams calldata _params,
         address _gateway,
         bytes calldata _data
-    )
-        external
-        payable
-        nonReentrant
-        whenNotPaused
-        eventEmitter(_params)
-    {
+    ) external payable nonReentrant whenNotPaused eventEmitter(_params) {
         if (!(availableRouters.contains(_params.router) && availableRouters.contains(_gateway))) {
             revert RouterNotAvailable();
         }
@@ -95,17 +82,18 @@ contract RubicProxy is OnlySourceFunctionality {
 
         uint256 balanceBefore = IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this));
 
-        AddressUpgradeable.functionCallWithValue(_params.router, _data, accrueFixedCryptoFee(_params.integrator, _info));
+        AddressUpgradeable.functionCallWithValue(
+            _params.router,
+            _data,
+            accrueFixedCryptoFee(_params.integrator, _info)
+        );
 
         if (balanceBefore - IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this)) != _amountIn) {
             revert DifferentAmountSpent();
         }
     }
 
-    function routerCallNative(
-        BaseCrossChainParams calldata _params,
-        bytes calldata _data
-    )
+    function routerCallNative(BaseCrossChainParams calldata _params, bytes calldata _data)
         external
         payable
         nonReentrant
