@@ -12,10 +12,11 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 const DEFAULT_PRIVATE_KEY = process.env.MNEMONIC || '1000000000000000000000000000000000000000000000000000000000000000';
 const MOONBEAM = process.env.MOONBEAM_API_KEY;
-const arb = process.env.ARBITRUM_API_KEY;
+const ARBITRUM = process.env.ARBITRUM_API_KEY;
 const OPTIMISM = process.env.OPTIMISM_API_KEY;
 const MOONRIVER = process.env.MOONRIVER_API_KEY;
 const CELO = process.env.CELO_API_KEY;
+const CRONOS = process.env.CRONOS_API_KEY;
 
 
 const DEFAULT_COMPILER_SETTINGS: SolcUserConfig = {
@@ -171,11 +172,12 @@ module.exports = {
     //   avalancheFujiTestnet: process.env.AVALANCHE_API_KEY
     // },
     apiKey:
-    `${CELO}`,
+    `${CRONOS}`,
+    // `${CELO}`,
     // `${MOONRIVER}`,
     // `${MOONBEAM}`,
      // `${OPTIMISM}`,
-     // `${arb}`,
+     // `${ARBITRUM}`,
   },
   solidity: {
     compilers: [DEFAULT_COMPILER_SETTINGS]
