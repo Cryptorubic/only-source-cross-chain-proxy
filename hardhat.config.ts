@@ -11,7 +11,11 @@ import { SolcUserConfig } from 'hardhat/types'
 import * as dotenv from 'dotenv';
 dotenv.config();
 const DEFAULT_PRIVATE_KEY = process.env.MNEMONIC || '1000000000000000000000000000000000000000000000000000000000000000';
+const MOONBEAM = process.env.MOONBEAM_API_KEY;
+const arb = process.env.ARBITRUM_API_KEY;
 const OPTIMISM = process.env.OPTIMISM_API_KEY;
+const MOONRIVER = process.env.MOONRIVER_API_KEY;
+const CELO = process.env.CELO_API_KEY;
 
 
 const DEFAULT_COMPILER_SETTINGS: SolcUserConfig = {
@@ -147,28 +151,31 @@ module.exports = {
     },
   },
   etherscan: {
-    apiKey: {
-      mainnet: process.env.ETHERSCAN_API_KEY,
-      ropsten: process.env.ETHERSCAN_API_KEY,
-      rinkeby: process.env.ETHERSCAN_API_KEY,
-      goerli: process.env.ETHERSCAN_API_KEY,
-      kovan: process.env.ETHERSCAN_API_KEY,
-      // binance smart chain
-      bsc: process.env.BSCSCAN_API_KEY,
-      bscTestnet: process.env.BSCSCAN_API_KEY,
-      // fantom mainnet
-      opera: process.env.FANTOMSCAN_API_KEY,
-      ftmTestnet: process.env.FANTOMSCAN_API_KEY,
-      // polygon
-      polygon: process.env.POLYGONSCAN_API_KEY,
-      polygonMumbai: process.env.POLYGONSCAN_API_KEY,
-      // avalanche
-      avalanche: process.env.AVALANCHE_API_KEY,
-      avalancheFujiTestnet: process.env.AVALANCHE_API_KEY
-    },
-    // apiKey:
-    //  `${OPTIMISM}`,
-     //  `${arb}`,
+    // apiKey: {
+    //   mainnet: process.env.ETHERSCAN_API_KEY,
+    //   ropsten: process.env.ETHERSCAN_API_KEY,
+    //   rinkeby: process.env.ETHERSCAN_API_KEY,
+    //   goerli: process.env.ETHERSCAN_API_KEY,
+    //   kovan: process.env.ETHERSCAN_API_KEY,
+    //   // binance smart chain
+    //   bsc: process.env.BSCSCAN_API_KEY,
+    //   bscTestnet: process.env.BSCSCAN_API_KEY,
+    //   // fantom mainnet
+    //   opera: process.env.FANTOMSCAN_API_KEY,
+    //   ftmTestnet: process.env.FANTOMSCAN_API_KEY,
+    //   // polygon
+    //   polygon: process.env.POLYGONSCAN_API_KEY,
+    //   polygonMumbai: process.env.POLYGONSCAN_API_KEY,
+    //   // avalanche
+    //   avalanche: process.env.AVALANCHE_API_KEY,
+    //   avalancheFujiTestnet: process.env.AVALANCHE_API_KEY
+    // },
+    apiKey:
+    `${CELO}`,
+    // `${MOONRIVER}`,
+    // `${MOONBEAM}`,
+     // `${OPTIMISM}`,
+     // `${arb}`,
   },
   solidity: {
     compilers: [DEFAULT_COMPILER_SETTINGS]
