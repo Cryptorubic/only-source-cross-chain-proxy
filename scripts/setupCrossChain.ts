@@ -10,6 +10,11 @@ async function main() {
     )) as RubicProxy;
 
     await proxy.setRubicPlatformFee(0);
+    await proxy.grantRole(
+        '0x241ecf16d79d0f8dbfb92cbc07fe17840425976cf0667f022fe9877caa831b08',
+        '0x...'
+    );
+    await proxy.setFixedCryptoFee(0);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
