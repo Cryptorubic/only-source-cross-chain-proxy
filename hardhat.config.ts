@@ -169,15 +169,26 @@ module.exports = {
     //   polygonMumbai: process.env.POLYGONSCAN_API_KEY,
     //   // avalanche
     //   avalanche: process.env.AVALANCHE_API_KEY,
-    //   avalancheFujiTestnet: process.env.AVALANCHE_API_KEY
+    //   avalancheFujiTestnet: process.env.AVALANCHE_API_KEY,
+    //   celo: CELO
     // },
     apiKey:
-    `${CRONOS}`,
+    // `${CRONOS}`,
     // `${CELO}`,
     // `${MOONRIVER}`,
     // `${MOONBEAM}`,
-     // `${OPTIMISM}`,
+     `${OPTIMISM}`,
      // `${ARBITRUM}`,
+    customChains: [
+    {
+      network: "celo",
+      chainId: 42220,
+      urls: {
+        apiURL: "https://api.celoscan.io/api",
+        browserURL: "https://celoscan.io"
+      }
+    }
+  ]
   },
   solidity: {
     compilers: [DEFAULT_COMPILER_SETTINGS]
