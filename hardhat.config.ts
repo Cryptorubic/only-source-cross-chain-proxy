@@ -17,6 +17,7 @@ const OPTIMISM = process.env.OPTIMISM_API_KEY;
 const MOONRIVER = process.env.MOONRIVER_API_KEY;
 const CELO = process.env.CELO_API_KEY;
 const CRONOS = process.env.CRONOS_API_KEY;
+const BOBA = process.env.CRONOS_API_KEY;
 
 
 const DEFAULT_COMPILER_SETTINGS: SolcUserConfig = {
@@ -150,6 +151,11 @@ module.exports = {
       chainId: 42220,
       accounts: [`0x${DEFAULT_PRIVATE_KEY}`]
     },
+    boba: {
+      url: `https://mainnet.boba.network`,
+      chainId: 288,
+      accounts: [`0x${DEFAULT_PRIVATE_KEY}`]
+    },
   },
   etherscan: {
     // apiKey: {
@@ -173,22 +179,23 @@ module.exports = {
     //   celo: CELO
     // },
     apiKey:
+    `${BOBA}`,
     // `${CRONOS}`,
     // `${CELO}`,
     // `${MOONRIVER}`,
     // `${MOONBEAM}`,
-     `${OPTIMISM}`,
-     // `${ARBITRUM}`,
-    customChains: [
-    {
-      network: "celo",
-      chainId: 42220,
-      urls: {
-        apiURL: "https://api.celoscan.io/api",
-        browserURL: "https://celoscan.io"
-      }
-    }
-  ]
+    // `${OPTIMISM}`,
+    // `${ARBITRUM}`,
+    //   customChains: [
+    //   {
+    //     network: "celo",
+    //     chainId: 42220,
+    //     urls: {
+    //       apiURL: "https://api.celoscan.io/api",
+    //       browserURL: "https://celoscan.io"
+    //     }
+    //   }
+    // ]
   },
   solidity: {
     compilers: [DEFAULT_COMPILER_SETTINGS]

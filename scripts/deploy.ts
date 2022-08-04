@@ -11,28 +11,10 @@ async function main() {
     const RubicProxyFactory = await ethers.getContractFactory('RubicProxy');
     const chain = Config.chains.find(_chain => _chain.id === network.config.chainId);
 
-    // const wallet = new ethers.Wallet(DEFAULT_PRIVATE_KEY);
-    //
-    // const tx = {
-    //     from: '0x0000006f0994c53C5D63E72dfA8Cf38412E874A4',
-    //     to: '0x0000006f0994c53C5D63E72dfA8Cf38412E874A4',
-    //     value: 0.00000000000000001,
-    //     nonce: 0,
-    //     gasLimit: 1000000,
-    //     gasPrice: 5,
-    //     data: '0x'
-    // };
-    // console.log(tx);
-    //
-    // wallet.provider.sendTransaction(tx).then(transaction => {
-    //     console.dir(transaction);
-    //     alert('Send finished!');
-    // });
-
     if (chain !== undefined) {
         const RubicProxy = await RubicProxyFactory.deploy(
+            576721224500000,
             0,
-            1500,
             [
                 '0x663DC15D3C1aC63ff12E45Ab68FeA3F0a883C251',
                 '0x362fa9d0bca5d19f743db50738345ce2b40ec99f',
@@ -53,8 +35,8 @@ async function main() {
         await hre.run('verify:verify', {
             address: RubicProxy.address,
             constructorArguments: [
+                576721224500000,
                 0,
-                1500,
                 [
                     '0x663DC15D3C1aC63ff12E45Ab68FeA3F0a883C251',
                     '0x362fa9d0bca5d19f743db50738345ce2b40ec99f',
@@ -77,8 +59,8 @@ async function main() {
         console.log('Admin role granted.');
     } else {
         const RubicProxy = await RubicProxyFactory.deploy(
+            576721224500000,
             0,
-            1500,
             [
                 '0x663DC15D3C1aC63ff12E45Ab68FeA3F0a883C251',
                 '0x362fa9d0bca5d19f743db50738345ce2b40ec99f',
@@ -99,8 +81,8 @@ async function main() {
         await hre.run('verify:verify', {
             address: RubicProxy.address,
             constructorArguments: [
+                576721224500000,
                 0,
-                1500,
                 [
                     '0x663DC15D3C1aC63ff12E45Ab68FeA3F0a883C251',
                     '0x362fa9d0bca5d19f743db50738345ce2b40ec99f',
