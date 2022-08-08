@@ -17,6 +17,7 @@ const OPTIMISM = process.env.OPTIMISM_API_KEY;
 const MOONRIVER = process.env.MOONRIVER_API_KEY;
 const CELO = process.env.CELO_API_KEY;
 const CRONOS = process.env.CRONOS_API_KEY;
+const BOBA = process.env.BOBA_API_KEY;
 
 
 const DEFAULT_COMPILER_SETTINGS: SolcUserConfig = {
@@ -150,45 +151,60 @@ module.exports = {
       chainId: 42220,
       accounts: [`0x${DEFAULT_PRIVATE_KEY}`]
     },
+    boba: {
+      url: `https://mainnet.boba.network`,
+      chainId: 288,
+      accounts: [`0x${DEFAULT_PRIVATE_KEY}`]
+    },
   },
   etherscan: {
-    // apiKey: {
-    //   mainnet: process.env.ETHERSCAN_API_KEY,
-    //   ropsten: process.env.ETHERSCAN_API_KEY,
-    //   rinkeby: process.env.ETHERSCAN_API_KEY,
-    //   goerli: process.env.ETHERSCAN_API_KEY,
-    //   kovan: process.env.ETHERSCAN_API_KEY,
-    //   // binance smart chain
-    //   bsc: process.env.BSCSCAN_API_KEY,
-    //   bscTestnet: process.env.BSCSCAN_API_KEY,
-    //   // fantom mainnet
-    //   opera: process.env.FANTOMSCAN_API_KEY,
-    //   ftmTestnet: process.env.FANTOMSCAN_API_KEY,
-    //   // polygon
-    //   polygon: process.env.POLYGONSCAN_API_KEY,
-    //   polygonMumbai: process.env.POLYGONSCAN_API_KEY,
-    //   // avalanche
-    //   avalanche: process.env.AVALANCHE_API_KEY,
-    //   avalancheFujiTestnet: process.env.AVALANCHE_API_KEY,
-    //   celo: CELO
-    // },
-    apiKey:
+    apiKey: {
+      mainnet: process.env.ETHERSCAN_API_KEY,
+      ropsten: process.env.ETHERSCAN_API_KEY,
+      rinkeby: process.env.ETHERSCAN_API_KEY,
+      goerli: process.env.ETHERSCAN_API_KEY,
+      kovan: process.env.ETHERSCAN_API_KEY,
+      // binance smart chain
+      bsc: process.env.BSCSCAN_API_KEY,
+      bscTestnet: process.env.BSCSCAN_API_KEY,
+      // fantom mainnet
+      opera: process.env.FANTOMSCAN_API_KEY,
+      ftmTestnet: process.env.FANTOMSCAN_API_KEY,
+      // polygon
+      polygon: process.env.POLYGONSCAN_API_KEY,
+      polygonMumbai: process.env.POLYGONSCAN_API_KEY,
+      // avalanche
+      avalanche: process.env.AVALANCHE_API_KEY,
+      avalancheFujiTestnet: process.env.AVALANCHE_API_KEY,
+      celo: CELO,
+      boba: BOBA
+    },
+    // apiKey:
+    // `${BOBA}`,
     // `${CRONOS}`,
     // `${CELO}`,
     // `${MOONRIVER}`,
     // `${MOONBEAM}`,
-     `${OPTIMISM}`,
-     // `${ARBITRUM}`,
-    customChains: [
-    {
-      network: "celo",
-      chainId: 42220,
-      urls: {
-        apiURL: "https://api.celoscan.io/api",
-        browserURL: "https://celoscan.io"
+    // `${OPTIMISM}`,
+    // `${ARBITRUM}`,
+      customChains: [
+      {
+        network: "celo",
+        chainId: 42220,
+        urls: {
+          apiURL: "https://api.celoscan.io/api",
+          browserURL: "https://celoscan.io"
+        }
+      },
+      {
+        network: "boba",
+        chainId: 288,
+        urls: {
+          apiURL: "https://api.bobascan.com/api",
+          browserURL: "https://bobascan.com/"
+        }
       }
-    }
-  ]
+    ]
   },
   solidity: {
     compilers: [DEFAULT_COMPILER_SETTINGS]
