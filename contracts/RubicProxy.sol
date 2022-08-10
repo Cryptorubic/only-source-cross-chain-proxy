@@ -21,7 +21,7 @@ error RouterNotAvailable();
 
 /**
     @title RubicProxy
-    @author Vladislav Yaroshuk t.me/grgred
+    @author Vladislav Yaroshuk
     @author George Eliseev
     @notice Universal proxy contract to Symbiosis, LiFi, deBridge and other cross-chain solutions
  */
