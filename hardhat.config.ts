@@ -2,6 +2,7 @@ import '@typechain/hardhat';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-etherscan';
+import "@cronos-labs/hardhat-cronoscan";
 import 'hardhat-contract-sizer';
 import 'hardhat-gas-reporter';
 import '@openzeppelin/hardhat-upgrades';
@@ -12,16 +13,11 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 const DEFAULT_PRIVATE_KEY = process.env.MNEMONIC || '1000000000000000000000000000000000000000000000000000000000000000';
 const MOONBEAM = process.env.MOONBEAM_API_KEY;
-const ARBITRUM = process.env.ARBITRUM_API_KEY;
-const OPTIMISM = process.env.OPTIMISM_API_KEY;
 const MOONRIVER = process.env.MOONRIVER_API_KEY;
-const CELO = process.env.CELO_API_KEY;
-const CRONOS = process.env.CRONOS_API_KEY;
-const BOBA = process.env.BOBA_API_KEY;
 
 
 const DEFAULT_COMPILER_SETTINGS: SolcUserConfig = {
-  version: '0.8.15',
+  version: '0.8.16',
   settings: {
     optimizer: {
       enabled: true,
@@ -156,6 +152,11 @@ module.exports = {
       chainId: 288,
       accounts: [`0x${DEFAULT_PRIVATE_KEY}`]
     },
+    telos: {
+      url: `https://mainnet.telos.net/evm`,
+      chainId: 40,
+      accounts: [`0x${DEFAULT_PRIVATE_KEY}`]
+    },
   },
   etherscan: {
     apiKey: {
@@ -176,17 +177,24 @@ module.exports = {
       // avalanche
       avalanche: process.env.AVALANCHE_API_KEY,
       avalancheFujiTestnet: process.env.AVALANCHE_API_KEY,
-      celo: CELO,
-      boba: BOBA
+      // celo
+      celo: process.env.CELO_API_KEY,
+      // boba
+      boba: process.env.BOBA_API_KEY,
+      // cronos
+      cronos: process.env.CRONOS_API_KEY,
+      // aurora
+      aurora: process.env.AURORA_API_KEY,
+      // arbitrum
+      arbitrum: process.env.ARBITRUM_API_KEY,
+      // optimism
+      optimism: process.env.OPTIMISM_API_KEY,
+      // optimism
+      moonbeam: process.env.MOONBEAM_API_KEY,
     },
     // apiKey:
-    // `${BOBA}`,
-    // `${CRONOS}`,
-    // `${CELO}`,
     // `${MOONRIVER}`,
     // `${MOONBEAM}`,
-    // `${OPTIMISM}`,
-    // `${ARBITRUM}`,
       customChains: [
       {
         network: "celo",
@@ -196,6 +204,38 @@ module.exports = {
           browserURL: "https://celoscan.io"
         }
       },
+      {
+        network: "arbitrum",
+        chainId: 42161,
+        urls: {
+          apiURL: "https://api.arbiscan.io/api",
+          browserURL: "https://arbiscan.io/"
+        }
+      },
+      {
+        network: "optimism",
+        chainId: 10,
+        urls: {
+          apiURL: "https://api-optimistic.etherscan.io",
+          browserURL: "https://optimistic.etherscan.io/"
+        }
+      },
+      {
+        network: "aurora",
+        chainId: 1313161554,
+        urls: {
+          apiURL: "https://api.aurorascan.dev/api",
+          browserURL: "https://aurorascan.dev/"
+        }
+      },
+      // {
+      //   network: "moonbeam",
+      //   chainId: 1313161554,
+      //   urls: {
+      //     apiURL: "https://api.aurorascan.dev/api",
+      //     browserURL: "https://moonbeam.moonscan.io/"
+      //   }
+      // },
       {
         network: "boba",
         chainId: 288,

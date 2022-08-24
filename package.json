@@ -25,6 +25,7 @@
     "truffle-plugin-verify": "^0.5.15"
   },
   "devDependencies": {
+    "@cronos-labs/hardhat-cronoscan": "^0.0.4",
     "@lifinance/sdk": "^1.0.0",
     "@nomiclabs/hardhat-etherscan": "^3.0.4",
     "@nomiclabs/hardhat-web3": "^2.0.0",
