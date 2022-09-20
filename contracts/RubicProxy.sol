@@ -14,9 +14,11 @@ pragma solidity ^0.8.10;
 */
 
 import 'rubic-bridge-base/contracts/architecture/OnlySourceFunctionality.sol';
-import 'rubic-bridge-base/contracts/libraries/SmartApprove.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
+import 'rubic-bridge-base/contracts/errors/Errors.sol';
 
-error DifferentAmountSpent();
+error AllowanceLeftAfterCall();
 error RouterNotAvailable();
 
 /**
@@ -78,9 +80,7 @@ contract RubicProxy is OnlySourceFunctionality {
             _params.srcInputToken
         );
 
-        SmartApprove.smartApprove(_params.srcInputToken, _amountIn, _gateway);
-
-        uint256 balanceBefore = IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this));
+        SafeERC20Upgradeable.safeIncreaseAllowance(IERC20Upgradeable(_params.srcInputToken), _gateway, _amountIn);
 
         AddressUpgradeable.functionCallWithValue(
             _params.router,
@@ -88,8 +88,8 @@ contract RubicProxy is OnlySourceFunctionality {
             accrueFixedCryptoFee(_params.integrator, _info)
         );
 
-        if (balanceBefore - IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this)) != _amountIn) {
-            revert DifferentAmountSpent();
+        if (IERC20Upgradeable(_params.srcInputToken).allowance(address(this), _gateway) > 0) {
+            revert AllowanceLeftAfterCall();
         }
     }
 
