@@ -61,14 +61,17 @@ contract RubicProxy is OnlySourceFunctionality {
     }
 
     function routerCall(
-        BaseCrossChainParams calldata _params,
+        BaseCrossChainParams memory _params,
         address _gateway,
         bytes calldata _data
     ) external payable nonReentrant whenNotPaused eventEmitter(_params) {
         if (!(availableRouters.contains(_params.router) && availableRouters.contains(_gateway))) {
             revert RouterNotAvailable();
         }
+        uint256 balanceBefore = IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this));
         IERC20Upgradeable(_params.srcInputToken).safeTransferFrom(msg.sender, address(this), _params.srcInputAmount);
+        // input amount for deflatioanary token 
+        _params.srcInputAmount = IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this)) - balanceBefore;
 
         IntegratorFeeInfo memory _info = integratorToFeeInfo[_params.integrator];
 
@@ -93,7 +96,7 @@ contract RubicProxy is OnlySourceFunctionality {
         }
     }
 
-    function routerCallNative(BaseCrossChainParams calldata _params, bytes calldata _data)
+    function routerCallNative(BaseCrossChainParams memory _params, bytes calldata _data)
         external
         payable
         nonReentrant
