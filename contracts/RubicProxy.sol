@@ -18,7 +18,7 @@ import '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 import '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 import 'rubic-bridge-base/contracts/errors/Errors.sol';
 
-error AllowanceLeftAfterCall();
+error DifferentAmountSpent();
 error RouterNotAvailable();
 
 /**
@@ -68,10 +68,11 @@ contract RubicProxy is OnlySourceFunctionality {
         if (!(availableRouters.contains(_params.router) && availableRouters.contains(_gateway))) {
             revert RouterNotAvailable();
         }
-        uint256 balanceBefore = IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this));
+        uint256 balanceBeforeTransfer = IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this));
         IERC20Upgradeable(_params.srcInputToken).safeTransferFrom(msg.sender, address(this), _params.srcInputAmount);
-        // input amount for deflatioanary token 
-        _params.srcInputAmount = IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this)) - balanceBefore;
+        // input amount for deflationary tokens
+        uint256 balanceAfterTransfer = IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this));
+        _params.srcInputAmount = balanceAfterTransfer - balanceBeforeTransfer;
 
         IntegratorFeeInfo memory _info = integratorToFeeInfo[_params.integrator];
 
@@ -91,8 +92,16 @@ contract RubicProxy is OnlySourceFunctionality {
             accrueFixedCryptoFee(_params.integrator, _info)
         );
 
+        if (
+            balanceAfterTransfer - IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this)) !=
+            _params.srcInputAmount
+        ) {
+            revert DifferentAmountSpent();
+        }
+
+        // reset allowance back to zero, just in case
         if (IERC20Upgradeable(_params.srcInputToken).allowance(address(this), _gateway) > 0) {
-            revert AllowanceLeftAfterCall();
+            IERC20Upgradeable(_params.srcInputToken).safeApprove(_gateway, 0);
         }
     }
 
