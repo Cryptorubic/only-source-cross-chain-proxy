@@ -30,6 +30,7 @@
     "@nomiclabs/hardhat-etherscan": "^3.0.4",
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/hardhat-upgrades": "^1.19.0",
+    "@openzeppelin/test-helpers": "^0.5.16",
     "@types/jest": "^27.0.3",
     "@types/mocha": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^4.33.0",

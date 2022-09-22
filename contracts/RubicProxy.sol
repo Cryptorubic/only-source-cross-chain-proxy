@@ -76,13 +76,7 @@ contract RubicProxy is OnlySourceFunctionality {
 
         IntegratorFeeInfo memory _info = integratorToFeeInfo[_params.integrator];
 
-        _amountIn = accrueTokenFees(
-            _params.integrator,
-            _info,
-            _amountIn,
-            0,
-            _params.srcInputToken
-        );
+        _amountIn = accrueTokenFees(_params.integrator, _info, _amountIn, 0, _params.srcInputToken);
 
         SafeERC20Upgradeable.safeIncreaseAllowance(IERC20Upgradeable(_params.srcInputToken), _gateway, _amountIn);
 
@@ -92,10 +86,7 @@ contract RubicProxy is OnlySourceFunctionality {
             accrueFixedCryptoFee(_params.integrator, _info)
         );
 
-        if (
-            balanceAfterTransfer - IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this)) !=
-            _amountIn
-        ) {
+        if (balanceAfterTransfer - IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this)) != _amountIn) {
             revert DifferentAmountSpent();
         }
 
