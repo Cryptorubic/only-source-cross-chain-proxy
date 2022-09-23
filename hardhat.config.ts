@@ -6,6 +6,7 @@ import "@cronos-labs/hardhat-cronoscan";
 import 'hardhat-contract-sizer';
 import 'hardhat-gas-reporter';
 import '@openzeppelin/hardhat-upgrades';
+import 'solidity-coverage';
 
 import { SolcUserConfig } from 'hardhat/types'
 
@@ -33,10 +34,10 @@ const DEFAULT_COMPILER_SETTINGS: SolcUserConfig = {
 module.exports = {
   networks: {
     hardhat: {
-      chainId: 137,
-      forking: {
-        url: `https://polygon-rpc.com`,
-      },
+      // chainId: 137,
+      // forking: {
+      //   url: `https://polygon-rpc.com`,
+      // },
       allowUnlimitedContractSize: true,
       loggingEnabled: false,
       accounts:{

@@ -213,12 +213,26 @@ describe('TestOnlySource', () => {
 
             await bridge.addAvailableRouter(owner.address);
 
-            expect(await bridge.getAvailableRouters()).to.be.deep.eq([
+            await expect(await bridge.getAvailableRouters()).to.be.deep.eq([
                 DEX.address,
                 routerCrossChain.address,
                 owner.address
             ]);
         });
+
+        it('Should sweep tokens', async () => {
+            await expect(
+                bridge
+                    .connect(swapper)
+                    .sweepTokens(swapToken.address, ethers.utils.parseEther('10'))
+            ).to.be.revertedWith('NotAnAdmin()');
+
+            await swapToken.mint(bridge.address, ethers.utils.parseEther('10'));
+            await bridge.sweepTokens(swapToken.address, ethers.utils.parseEther('10'));
+
+            expect(Number(await swapToken.balanceOf(bridge.address))).to.be.deep.eq(0);
+        });
+
         it('validation of integratorFeeInfo', async () => {
             let feeInfo = {
                 isIntegrator: true,
@@ -258,7 +272,7 @@ describe('TestOnlySource', () => {
         });
     });
 
-    describe.only('cross chain tests', () => {
+    describe('cross chain tests', () => {
         beforeEach('setup before swaps', async () => {
             bridge = bridge.connect(swapper);
 
@@ -270,7 +284,7 @@ describe('TestOnlySource', () => {
                 `RouterNotAvailable()`
             );
         });
-        it.only('cross chain with swap amounts without integrator', async () => {
+        it('cross chain with swap amounts without integrator', async () => {
             const { feeAmount, amountWithoutFee, RubicFee } = await calcTokenFees({
                 bridge,
                 amountWithFee: consts.DEFAULT_AMOUNT_IN
@@ -278,10 +292,8 @@ describe('TestOnlySource', () => {
             await callBridge(
                 await routerCrossChain.viewEncode(swapToken.address, amountWithoutFee, 228)
             );
-            // expect(await transitToken.balanceOf(bridge.address)).to.be.eq(
-            //     amountWithoutFee.mul(await DEX.price()),
-            //     'wrong amount of transit token on the bridge'
-            // );
+            expect(await swapToken.allowance(bridge.address, routerCrossChain.address)).to.be.eq(0);
+
             expect(await swapToken.balanceOf(bridge.address)).to.be.eq(
                 feeAmount,
                 'wrong amount of swapped token on the contract as fees'
@@ -300,16 +312,19 @@ describe('TestOnlySource', () => {
                 fixedFeeAmount: BN.from(0)
             });
 
-            await callBridge('', { integrator: integratorWallet.address });
             const { feeAmount, amountWithoutFee, integratorFee, RubicFee } = await calcTokenFees({
                 bridge,
                 amountWithFee: consts.DEFAULT_AMOUNT_IN,
                 integrator: integratorWallet.address
             });
-            expect(await transitToken.balanceOf(bridge.address)).to.be.eq(
-                amountWithoutFee.mul(await DEX.price()),
-                'wrong amount of transit token on the bridge'
+
+            await callBridge(
+                await routerCrossChain.viewEncode(swapToken.address, amountWithoutFee, 228),
+                { integrator: integratorWallet.address }
             );
+
+            expect(await swapToken.allowance(bridge.address, routerCrossChain.address)).to.be.eq(0);
+
             expect(await swapToken.balanceOf(bridge.address)).to.be.eq(
                 feeAmount,
                 'wrong amount of swapped token on the contract as fees'
@@ -334,15 +349,17 @@ describe('TestOnlySource', () => {
                 fixedFeeAmount: BN.from(0)
             });
 
-            await callBridge('', { integrator: integratorWallet.address });
             const { feeAmount, amountWithoutFee, RubicFee } = await calcTokenFees({
                 bridge,
                 amountWithFee: consts.DEFAULT_AMOUNT_IN
             });
-            expect(await transitToken.balanceOf(bridge.address)).to.be.eq(
-                amountWithoutFee.mul(await DEX.price()),
-                'wrong amount of transit token on the bridge'
+
+            await callBridge(
+                await routerCrossChain.viewEncode(swapToken.address, amountWithoutFee, 228),
+                { integrator: integratorWallet.address }
             );
+            expect(await swapToken.allowance(bridge.address, routerCrossChain.address)).to.be.eq(0);
+
             expect(await swapToken.balanceOf(bridge.address)).to.be.eq(
                 feeAmount,
                 'wrong amount of swapped token on the contract as fees'
@@ -353,7 +370,15 @@ describe('TestOnlySource', () => {
             );
         });
         it('check fixed crypto fee without integrator', async () => {
-            await callBridge('');
+            const { amountWithoutFee } = await calcTokenFees({
+                bridge,
+                amountWithFee: consts.DEFAULT_AMOUNT_IN
+            });
+
+            await callBridge(
+                await routerCrossChain.viewEncode(swapToken.address, amountWithoutFee, 228)
+            );
+            expect(await swapToken.allowance(bridge.address, routerCrossChain.address)).to.be.eq(0);
 
             expect(await waffle.provider.getBalance(bridge.address)).to.be.eq(
                 consts.FIXED_CRYPTO_FEE
@@ -369,18 +394,28 @@ describe('TestOnlySource', () => {
                 fixedFeeAmount: consts.FIXED_CRYPTO_FEE.add(BN.from('228'))
             });
 
+            const { amountWithoutFee } = await calcTokenFees({
+                bridge,
+                amountWithFee: consts.DEFAULT_AMOUNT_IN,
+                integrator: integratorWallet.address
+            });
+
             const { totalCryptoFee, RubicFixedFee, integratorFixedFee } = await calcCryptoFees({
                 bridge,
                 integrator: integratorWallet.address
             });
 
-            await callBridge('', { integrator: integratorWallet.address });
+            await callBridge(
+                await routerCrossChain.viewEncode(swapToken.address, amountWithoutFee, 228),
+                { integrator: integratorWallet.address }
+            );
 
             expect(await waffle.provider.getBalance(bridge.address)).to.be.eq(totalCryptoFee);
             expect(await bridge.availableIntegratorCryptoFee(integratorWallet.address)).to.be.eq(
                 integratorFixedFee
             );
             expect(await bridge.availableRubicCryptoFee()).to.be.eq(RubicFixedFee);
+            expect(await swapToken.allowance(bridge.address, routerCrossChain.address)).to.be.eq(0);
         });
         it('check fixed crypto fee with integrator (fixedCryptoFee = 0)', async () => {
             await bridge.connect(owner).setIntegratorInfo(integratorWallet.address, {
@@ -390,8 +425,17 @@ describe('TestOnlySource', () => {
                 RubicTokenShare: '400000', // 40%,
                 fixedFeeAmount: '0'
             });
+            const { amountWithoutFee } = await calcTokenFees({
+                bridge,
+                amountWithFee: consts.DEFAULT_AMOUNT_IN,
+                integrator: integratorWallet.address
+            });
+            expect(await swapToken.allowance(bridge.address, routerCrossChain.address)).to.be.eq(0);
 
-            await callBridge('', { integrator: integratorWallet.address });
+            await callBridge(
+                await routerCrossChain.viewEncode(swapToken.address, amountWithoutFee, 228),
+                { integrator: integratorWallet.address }
+            );
 
             expect(await waffle.provider.getBalance(bridge.address)).to.be.eq(0);
             expect(await bridge.availableIntegratorCryptoFee(integratorWallet.address)).to.be.eq(0);
@@ -409,6 +453,7 @@ describe('TestOnlySource', () => {
         let RubicFee;
         let integratorFixedFee;
         let RubicFixedFee;
+        let amountWithoutFee;
 
         beforeEach('setup before collects', async () => {
             await bridge.grantRole(await bridge.MANAGER_ROLE(), manager.address);
@@ -426,7 +471,7 @@ describe('TestOnlySource', () => {
 
             bridge = bridge.connect(swapper);
 
-            ({ integratorFee, RubicFee } = await calcTokenFees({
+            ({ integratorFee, amountWithoutFee, RubicFee } = await calcTokenFees({
                 bridge,
                 amountWithFee: consts.DEFAULT_AMOUNT_IN,
                 integrator: integratorWallet.address
@@ -437,7 +482,10 @@ describe('TestOnlySource', () => {
                 integrator: integratorWallet.address
             }));
 
-            await callBridge('', { integrator: integratorWallet.address });
+            await callBridge(
+                await routerCrossChain.viewEncode(swapToken.address, amountWithoutFee, 228),
+                { integrator: integratorWallet.address }
+            );
 
             bridge = bridge.connect(manager);
         });
@@ -461,26 +509,6 @@ describe('TestOnlySource', () => {
             await bridge.collectRubicFee(swapToken.address);
 
             expect(await swapToken.balanceOf(manager.address)).to.be.eq(RubicFee);
-        });
-        it('collect integrator crypto fee', async () => {
-            const tracker = await balance.tracker(integratorWallet.address);
-
-            await bridge
-                .connect(integratorWallet)
-                ['collectIntegratorFee(address)'](ethers.constants.AddressZero);
-
-            const { delta, fees } = await tracker.deltaWithFees();
-
-            expect(delta.add(fees).toString()).to.be.equal(integratorFixedFee.toString());
-        });
-        it('collect Rubic crypto fee', async () => {
-            const tracker = await balance.tracker(manager.address);
-
-            await bridge.collectRubicCryptoFee();
-
-            const { delta, fees } = await tracker.deltaWithFees();
-
-            expect(delta.add(fees).toString()).to.be.equal(RubicFixedFee.toString());
         });
     });
 });

@@ -95,26 +95,3 @@ export async function calcCryptoFees({
 
     return { totalCryptoFee, fixedCryptoFee, RubicFixedFee, integratorFixedFee, gasFee };
 }
-
-// export async function packParams({
-//     inputToken,
-//     inputAmount,
-//     dstChainID
-// }: {
-//     inputToken?: string;
-//     inputAmount?: BigNumberish;
-//     dstChainID?: BigNumberish;
-// }): Promise<{
-//     data: BytesLike;
-// }> {
-//     const iface = new Interface([
-//         // Constructor
-//         'swapToken(address _inputToken,uint256 _inputAmount,uint256 _chainId)'
-//     ]);
-//     const data = ethers.utils.Interface.encodeFunctionData(
-//         ['swapToken(address _inputToken,uint256 _inputAmount,uint256 _chainId)'],
-//         [inputToken, inputAmount, dstChainID]
-//     );
-//     console.log(data);
-//     return { data };
-// }
