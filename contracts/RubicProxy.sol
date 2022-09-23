@@ -17,6 +17,7 @@ import 'rubic-bridge-base/contracts/architecture/OnlySourceFunctionality.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 import 'rubic-bridge-base/contracts/errors/Errors.sol';
+import 'hardhat/console.sol';
 
 error DifferentAmountSpent();
 error RouterNotAvailable();
@@ -68,9 +69,12 @@ contract RubicProxy is OnlySourceFunctionality {
         if (!(availableRouters.contains(_params.router) && availableRouters.contains(_gateway))) {
             revert RouterNotAvailable();
         }
+        console.log('1');
         uint256 balanceBeforeTransfer = IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this));
+        console.log(msg.sender);
         IERC20Upgradeable(_params.srcInputToken).safeTransferFrom(msg.sender, address(this), _params.srcInputAmount);
         uint256 balanceAfterTransfer = IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this));
+        console.log('2');
         // input amount for deflationary tokens
         uint256 _amountIn = balanceAfterTransfer - balanceBeforeTransfer;
 

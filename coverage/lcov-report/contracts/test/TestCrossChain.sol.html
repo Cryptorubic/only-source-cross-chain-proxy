@@ -20,28 +20,28 @@
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">50% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>4/8</span>
+        <span class='fraction'>8/8</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">0% </span>
+        <span class="strong">50% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>0/2</span>
+        <span class='fraction'>1/2</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">50% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>2/4</span>
+        <span class='fraction'>4/4</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">50% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>4/8</span>
+        <span class='fraction'>8/8</span>
       </div>
     </div>
   </div>
-  <div class='status-line medium'></div>
+  <div class='status-line high'></div>
 <pre><table class="coverage">
 <tr><td class="line-count quiet">1
 2
@@ -120,16 +120,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">12×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -138,13 +136,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9×</span>
-<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-yes">12×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
@@ -177,9 +177,9 @@ contract TestCrossChain is ITestCrossChain {
         emit Swap(msg.sender, _inputToken, _inputAmount, _chainId);
     }
 &nbsp;
-<span class="fstat-no" title="function not covered" >    function swapNative(uint256 _inputAmount, uint256 _chainId) external payable {</span>
-<span class="cstat-no" title="statement not covered" >        require(msg.value &gt;= _inputAmount)</span>;
-<span class="cstat-no" title="statement not covered" >        emit Swap(msg.sender, address(0), _inputAmount, _chainId);</span>
+    function swapNative(uint256 _inputAmount, uint256 _chainId) external payable {
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(msg.value &gt;= _inputAmount);
+        emit Swap(msg.sender, address(0), _inputAmount, _chainId);
     }
 &nbsp;
     bytes4 private constant FUNC_SELECTOR = bytes4(keccak256('swapToken(address,uint256,uint256)'));
@@ -194,9 +194,9 @@ contract TestCrossChain is ITestCrossChain {
         return data;
     }
 &nbsp;
-<span class="fstat-no" title="function not covered" >    function viewEncodeNative(uint256 _inputAmount, uint256 _chainId) external view returns (bytes memory) {</span>
-<span class="cstat-no" title="statement not covered" >        bytes memory data = abi.encodeWithSelector(FUNC_SELECTOR_NATIVE, _inputAmount, _chainId);</span>
-<span class="cstat-no" title="statement not covered" >        return data;</span>
+    function viewEncodeNative(uint256 _inputAmount, uint256 _chainId) external view returns (bytes memory) {
+        bytes memory data = abi.encodeWithSelector(FUNC_SELECTOR_NATIVE, _inputAmount, _chainId);
+        return data;
     }
 }
 &nbsp;</pre></td></tr>
@@ -205,7 +205,7 @@ contract TestCrossChain is ITestCrossChain {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Sep 23 2022 12:17:09 GMT+0300 (Москва, стандартное время)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Sep 23 2022 17:02:24 GMT+0300 (Москва, стандартное время)
 </div>
 </div>
 <script src="../../prettify.js"></script>
