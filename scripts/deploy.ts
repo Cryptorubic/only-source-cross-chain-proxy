@@ -7,97 +7,32 @@ dotenv.config();
 
 async function main() {
     const RubicProxyFactory = await ethers.getContractFactory('RubicProxy');
-    const chain = Config.chains.find(_chain => _chain.id === network.config.chainId);
+    const chain = Config.chains.find(_chain => _chain.id === network.config.chainId)!;
 
-    if (chain !== undefined) {
-        const RubicProxy = await RubicProxyFactory.deploy(
-            620697788453779,
-            0,
-            [
-                '0x663DC15D3C1aC63ff12E45Ab68FeA3F0a883C251',
-                '0x362fa9d0bca5d19f743db50738345ce2b40ec99f',
-                chain.metaRouter,
-                chain.metaRouterGateway
-            ],
-            [],
-            [],
-            []
-        );
+    const RubicProxy = await RubicProxyFactory.deploy(0, 0, chain?.routers, [], [], []);
 
-        await RubicProxy.deployed();
+    await RubicProxy.deployed();
 
-        console.log('RubicProxy deployed to ', RubicProxy.address);
+    console.log('RubicProxy deployed to ', RubicProxy.address);
 
-        await new Promise(r => setTimeout(r, 10000));
+    await new Promise(r => setTimeout(r, 10000));
 
-        await hre.run('verify:verify', {
-            address: RubicProxy.address,
-            constructorArguments: [
-                620697788453779,
-                0,
-                [
-                    '0x663DC15D3C1aC63ff12E45Ab68FeA3F0a883C251',
-                    '0x362fa9d0bca5d19f743db50738345ce2b40ec99f',
-                    chain.metaRouter,
-                    chain.metaRouterGateway
-                ],
-                [],
-                [],
-                []
-            ]
-        });
-        const managerRole = await RubicProxy.MANAGER_ROLE();
+    let managerRole = await RubicProxy.MANAGER_ROLE();
 
-        await RubicProxy.grantRole(managerRole, '0x8F53A5BDE40F809958f5a0A568B7D65A4EB07349');
-        console.log('Manager role granted.');
+    await RubicProxy.grantRole(managerRole, '0xaE6FAf6C1c0006b81ce04308E225B01D9b667A6E');
+    console.log('Manager role granted.');
 
-        await new Promise(r => setTimeout(r, 10000));
+    await new Promise(r => setTimeout(r, 10000));
 
-        // await RubicProxy.transferAdmin('0x105A3BA3637A29D36F61c7F03f55Da44B4591Cd1');
-        // console.log('Admin role granted.');
-    } else {
-        const RubicProxy = await RubicProxyFactory.deploy(
-            620697788453779,
-            0,
-            [
-                '0x663DC15D3C1aC63ff12E45Ab68FeA3F0a883C251',
-                '0x362fa9d0bca5d19f743db50738345ce2b40ec99f'
-            ],
-            [],
-            [],
-            []
-        );
+    await RubicProxy.transferAdmin('0x105A3BA3637A29D36F61c7F03f55Da44B4591Cd1');
+    console.log('Admin role granted.');
 
-        await RubicProxy.deployed();
+    await new Promise(r => setTimeout(r, 10000));
 
-        console.log('RubicProxy deployed to ', RubicProxy.address);
-
-        await new Promise(r => setTimeout(r, 10000));
-
-        await hre.run('verify:verify', {
-            address: RubicProxy.address,
-            constructorArguments: [
-                620697788453779,
-                0,
-                [
-                    '0x663DC15D3C1aC63ff12E45Ab68FeA3F0a883C251',
-                    '0x362fa9d0bca5d19f743db50738345ce2b40ec99f'
-                ],
-                [],
-                [],
-                []
-            ]
-        });
-        const managerRole = await RubicProxy.MANAGER_ROLE();
-
-        await RubicProxy.grantRole(managerRole, '0x8F53A5BDE40F809958f5a0A568B7D65A4EB07349');
-        console.log('Manager role granted.');
-
-        await new Promise(r => setTimeout(r, 10000));
-
-        // await RubicProxy.transferAdmin('0x105A3BA3637A29D36F61c7F03f55Da44B4591Cd1');
-        // console.log('Admin role granted.');
-    }
+    await hre.run('verify:verify', {
+        address: RubicProxy.address,
+        constructorArguments: [0, 0, chain.routers, [], [], []]
+    });
 }
 
 // We recommend this pattern to be able to use async/await everywhere
