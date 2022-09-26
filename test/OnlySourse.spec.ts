@@ -1,7 +1,14 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 import { ethers, network, waffle } from 'hardhat';
 import { Wallet } from '@ethersproject/wallet';
-import { RubicProxy, TestERC20, TestDEX, TestCrossChain, TestERC20Allowance } from '../typechain';
+import {
+    RubicProxy,
+    TestERC20,
+    TestDEX,
+    TestCrossChain,
+    TestERC20Allowance,
+    TestERC20Defl
+} from '../typechain';
 import { expect } from 'chai';
 import { BigNumber as BN, ContractTransaction, BytesLike } from 'ethers';
 import * as consts from './shared/consts';
@@ -321,15 +328,37 @@ describe('TestOnlySource', () => {
                 )
             ).to.be.revertedWith(`ERC20: insufficient allowance`);
         });
-        it.only('should burn additional allowance', async () => {
+        it('should be paused', async () => {
+            const { amountWithoutFee } = await calcTokenFees({
+                bridge,
+                amountWithFee: consts.DEFAULT_AMOUNT_IN
+            });
+            await bridge.connect(owner).pauseExecution();
+            await expect(
+                callBridge(
+                    await routerCrossChain.viewEncode(swapToken.address, amountWithoutFee, 228)
+                )
+            ).to.be.revertedWith(`Pausable: paused`);
+        });
+        it('should work after pause', async () => {
+            const { amountWithoutFee } = await calcTokenFees({
+                bridge,
+                amountWithFee: consts.DEFAULT_AMOUNT_IN
+            });
+            await bridge.connect(owner).pauseExecution();
+            await bridge.connect(owner).unpauseExecution();
+            await callBridge(
+                await routerCrossChain.viewEncode(swapToken.address, amountWithoutFee, 228)
+            );
+        });
+        it('should burn additional allowance', async () => {
             const tokenFactoryAllowance = await ethers.getContractFactory('TestERC20Allowance');
             const tokenAllowance = (await tokenFactoryAllowance.deploy()) as TestERC20Allowance;
-            await tokenAllowance.mint(ethers.utils.parseEther('100000000'));
-            await tokenAllowance.increaseAllowance(
-                bridge.address,
-                ethers.utils.parseEther('100000000000000')
-            );
-            console.log(await tokenAllowance.allowance(owner.address, bridge.address));
+            await tokenAllowance.mint(owner.address, ethers.utils.parseEther('100000000'));
+            await tokenAllowance
+                .connect(owner)
+                .increaseAllowance(bridge.address, ethers.utils.parseEther('100000000000000'));
+            bridge = bridge.connect(owner);
 
             const { amountWithoutFee } = await calcTokenFees({
                 bridge,
@@ -344,6 +373,31 @@ describe('TestOnlySource', () => {
             expect(
                 await tokenAllowance.allowance(bridge.address, routerCrossChain.address)
             ).to.be.eq(0);
+        });
+        it('should work with defl tokens', async () => {
+            const tokenFactoryDefl = await ethers.getContractFactory('TestERC20Defl');
+            const tokenDefl = (await tokenFactoryDefl.deploy()) as TestERC20Defl;
+            await tokenDefl.mint(owner.address, ethers.utils.parseEther('10000000000000000'));
+            await tokenDefl
+                .connect(owner)
+                .increaseAllowance(bridge.address, ethers.utils.parseEther('100000000000000'));
+            bridge = bridge.connect(owner);
+
+            const { amountWithoutFee } = await calcTokenFees({
+                bridge,
+                amountWithFee: consts.DEFAULT_AMOUNT_IN
+            });
+
+            await callBridge(
+                await routerCrossChain.viewEncode(
+                    tokenDefl.address,
+                    amountWithoutFee.mul(99).div(100),
+                    228
+                ),
+                { srcInputToken: tokenDefl.address }
+            );
+
+            expect(await tokenDefl.allowance(bridge.address, routerCrossChain.address)).to.be.eq(0);
         });
         it('cross chain with swap amounts without integrator', async () => {
             const { feeAmount, amountWithoutFee, RubicFee } = await calcTokenFees({
@@ -550,7 +604,7 @@ describe('TestOnlySource', () => {
                 fixedFeeAmount: BN.from(0)
             });
 
-            const { feeAmount, amountWithoutFee, integratorFee, RubicFee } = await calcTokenFees({
+            const { amountWithoutFee } = await calcTokenFees({
                 bridge,
                 amountWithFee: consts.DEFAULT_AMOUNT_IN,
                 integrator: integratorWallet.address

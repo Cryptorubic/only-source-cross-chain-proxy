@@ -9,13 +9,13 @@ contract TestERC20Allowance is ERC20 {
         _mint(msg.sender, 10000 ether);
     }
 
-    function mint(uint256 _amount) external {
-        _mint(msg.sender, _amount);
+    function mint(address _to, uint256 _amount) external {
+        _mint(_to, _amount);
     }
     
-    function increaseAllowance(address spender, uint256 addedValue) public virtual override returns (bool) {
+    function approve(address spender, uint256 amount) public virtual override returns (bool) {
         address owner = _msgSender();
-        _approve(owner, spender, allowance(owner, spender) + addedValue + 1000);
+        _approve(owner, spender, amount*110/100);
         return true;
     }
 }
