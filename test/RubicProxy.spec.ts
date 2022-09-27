@@ -53,6 +53,7 @@ describe('TestOnlySource', () => {
             ).totalCryptoFee;
 
             return bridge.routerCall(
+                consts.DEFAULT_MESSAGE,
                 {
                     srcInputToken,
                     srcInputAmount,
@@ -76,6 +77,7 @@ describe('TestOnlySource', () => {
             })
         ).totalCryptoFee.add(srcInputAmount);
         return bridge.routerCallNative(
+            consts.DEFAULT_MESSAGE,
             {
                 srcInputToken,
                 dstOutputToken,
@@ -213,19 +215,19 @@ describe('TestOnlySource', () => {
         });
         it('only manager can remove routers', async () => {
             await expect(
-                bridge.connect(swapper).removeAvailableRouter(DEX.address)
+                bridge.connect(swapper).removeAvailableRouters([DEX.address])
             ).to.be.revertedWith('NotAManager()');
 
-            await bridge.removeAvailableRouter(DEX.address);
-            await bridge.removeAvailableRouter(routerCrossChain.address);
+            await bridge.removeAvailableRouters([DEX.address]);
+            await bridge.removeAvailableRouters([routerCrossChain.address]);
             expect(await bridge.getAvailableRouters()).to.be.deep.eq([]);
         });
         it('only manager can add routers', async () => {
             await expect(
-                bridge.connect(swapper).addAvailableRouter(owner.address)
+                bridge.connect(swapper).addAvailableRouters([owner.address])
             ).to.be.revertedWith('NotAManager()');
 
-            await bridge.addAvailableRouter(owner.address);
+            await bridge.addAvailableRouters([owner.address]);
 
             await expect(await bridge.getAvailableRouters()).to.be.deep.eq([
                 DEX.address,

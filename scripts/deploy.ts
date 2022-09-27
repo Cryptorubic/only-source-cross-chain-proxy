@@ -9,7 +9,7 @@ async function main() {
     const RubicProxyFactory = await ethers.getContractFactory('RubicProxy');
     const chain = Config.chains.find(_chain => _chain.id === network.config.chainId)!;
 
-    const RubicProxy = await RubicProxyFactory.deploy(0, 0, chain?.routers, [], [], []);
+    const RubicProxy = await RubicProxyFactory.deploy(0, 0, chain.routers, [], [], []);
 
     await RubicProxy.deployed();
 
