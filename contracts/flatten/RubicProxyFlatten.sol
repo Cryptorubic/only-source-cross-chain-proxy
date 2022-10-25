@@ -2333,7 +2333,7 @@ contract OnlySourceFunctionality is BridgeBase {
 }
 
 
-// File contracts/RubicProxy.sol
+// File contracts/flatten/RubicProxyFlatten.sol
 
 
 
@@ -2357,12 +2357,12 @@ error DifferentAmountSpent();
 error RouterNotAvailable();
 
 /**
-    @title RubicProxy
+    @title RubicProxyFlatten
     @author Vladislav Yaroshuk
     @author George Eliseev
     @notice Universal proxy contract to Symbiosis, LiFi, deBridge and other cross-chain solutions
  */
-contract RubicProxy is OnlySourceFunctionality {
+contract RubicProxyFlatten is OnlySourceFunctionality {
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
