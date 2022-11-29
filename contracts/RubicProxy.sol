@@ -17,9 +17,13 @@ import 'rubic-bridge-base/contracts/architecture/OnlySourceFunctionality.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 import 'rubic-bridge-base/contracts/errors/Errors.sol';
+import 'rubic-whitelist-contract/contracts/interfaces/IRubicWhitelist.sol';
 
 error DifferentAmountSpent();
-error RouterNotAvailable();
+// This error throws in routerCall function
+error ProviderNotAvailable(address _router, address _gateway);
+// This error throws in routerCallNative since there is no _gateway parameter
+error RouterNotAvailable(address _router);
 
 /**
     @title RubicProxy
@@ -31,32 +35,41 @@ contract RubicProxy is OnlySourceFunctionality {
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
+    IRubicWhitelist public whitelistRegistry;
+
     constructor(
         uint256 _fixedCryptoFee,
         uint256 _RubicPlatformFee,
-        address[] memory _routers,
         address[] memory _tokens,
         uint256[] memory _minTokenAmounts,
-        uint256[] memory _maxTokenAmounts
+        uint256[] memory _maxTokenAmounts,
+        address _admin,
+        IRubicWhitelist _whitelistRegistry
     ) {
-        initialize(_fixedCryptoFee, _RubicPlatformFee, _routers, _tokens, _minTokenAmounts, _maxTokenAmounts);
+        if (address(_whitelistRegistry) == address(0)) {
+            revert ZeroAddress();
+        }
+
+        whitelistRegistry = _whitelistRegistry;
+
+        initialize(_fixedCryptoFee, _RubicPlatformFee, _tokens, _minTokenAmounts, _maxTokenAmounts, _admin);
     }
 
     function initialize(
         uint256 _fixedCryptoFee,
         uint256 _RubicPlatformFee,
-        address[] memory _routers,
         address[] memory _tokens,
         uint256[] memory _minTokenAmounts,
-        uint256[] memory _maxTokenAmounts
+        uint256[] memory _maxTokenAmounts,
+        address _admin
     ) private initializer {
         __OnlySourceFunctionalityInit(
             _fixedCryptoFee,
             _RubicPlatformFee,
-            _routers,
             _tokens,
             _minTokenAmounts,
-            _maxTokenAmounts
+            _maxTokenAmounts,
+            _admin
         );
     }
 
@@ -66,8 +79,23 @@ contract RubicProxy is OnlySourceFunctionality {
         address _gateway,
         bytes calldata _data
     ) external payable nonReentrant whenNotPaused eventEmitter(_params, _providerInfo) {
-        if (!(availableRouters.contains(_params.router) && availableRouters.contains(_gateway))) {
-            revert RouterNotAvailable();
+        {
+            bool isRouterAvailable = whitelistRegistry.isWhitelistedCrossChain(_params.router);
+
+            if (!(whitelistRegistry.isWhitelistedCrossChain(_gateway))) {
+                if (isRouterAvailable) {
+                    // If the router is available than it's eq 0x000 address in the error
+                    revert ProviderNotAvailable(address(0), _gateway);
+                } else {
+                    // If both are not available than both are passed into the error
+                    revert ProviderNotAvailable(_params.router, _gateway);
+                }
+            } else {
+                if (!isRouterAvailable) {
+                    // If the gateway is available than it's eq 0x000 address in the error
+                    revert ProviderNotAvailable(_params.router, address(0));
+                }
+            }
         }
 
         uint256 balanceBeforeTransfer = IERC20Upgradeable(_params.srcInputToken).balanceOf(address(this));
@@ -104,8 +132,8 @@ contract RubicProxy is OnlySourceFunctionality {
         BaseCrossChainParams calldata _params,
         bytes calldata _data
     ) external payable nonReentrant whenNotPaused eventEmitter(_params, _providerInfo) {
-        if (!availableRouters.contains(_params.router)) {
-            revert RouterNotAvailable();
+        if (!whitelistRegistry.isWhitelistedCrossChain(_params.router)) {
+            revert RouterNotAvailable(_params.router);
         }
 
         IntegratorFeeInfo memory _info = integratorToFeeInfo[_params.integrator];
@@ -119,9 +147,5 @@ contract RubicProxy is OnlySourceFunctionality {
         );
 
         AddressUpgradeable.functionCallWithValue(_params.router, _data, _amountIn);
-    }
-
-    function sweepTokens(address _token, uint256 _amount) external onlyAdmin {
-        sendToken(_token, _amount, msg.sender);
     }
 }

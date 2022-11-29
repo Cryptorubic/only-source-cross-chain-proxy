@@ -1,12 +1,17 @@
 import { RubicProxy, TestDEX, TestERC20, TestCrossChain } from '../../typechain';
-import { Fixture } from 'ethereum-waffle';
 import { ethers } from 'hardhat';
 import { RUBIC_PLATFORM_FEE, MIN_TOKEN_AMOUNT, MAX_TOKEN_AMOUNT, FIXED_CRYPTO_FEE } from './consts';
+import {
+    abi as WHITELIST_ABI,
+    bytecode as WHITELIST_BYTECODE
+} from 'rubic-whitelist-contract/artifacts/contracts/test/WhitelistMock.sol/WhitelistMock.json';
+import { Contract } from 'ethers';
 
 type Bridge = RubicProxy;
 
 interface BridgeFixture {
     bridge: Bridge;
+    whitelist: Contract;
     transitToken: TestERC20;
     swapToken: TestERC20;
     DEX: TestDEX;
@@ -33,21 +38,29 @@ const bridgeFixture = async function (): Promise<{
     return { transitToken, swapToken, DEX, routerCrossChain };
 };
 
-export const onlySourceFixture: Fixture<BridgeFixture> = async function (): Promise<BridgeFixture> {
+export const onlySourceFixture = async function (): Promise<BridgeFixture> {
     const { transitToken, swapToken, DEX, routerCrossChain } = await bridgeFixture();
     const bridgeFactory = await ethers.getContractFactory('RubicProxy');
+
+    const deployer = await bridgeFactory.signer.getAddress();
+
+    const whitelistFactory = await ethers.getContractFactory(WHITELIST_ABI, WHITELIST_BYTECODE);
+    const whitelist = await whitelistFactory.deploy([], deployer);
+
+    await whitelist.addCrossChains([DEX.address, routerCrossChain.address]);
 
     const bridge = (await bridgeFactory.deploy(
         FIXED_CRYPTO_FEE,
         RUBIC_PLATFORM_FEE,
-        [DEX.address, routerCrossChain.address],
         [transitToken.address, swapToken.address],
         [MIN_TOKEN_AMOUNT, MIN_TOKEN_AMOUNT],
-        [MAX_TOKEN_AMOUNT, MAX_TOKEN_AMOUNT]
+        [MAX_TOKEN_AMOUNT, MAX_TOKEN_AMOUNT],
+        deployer,
+        whitelist.address
     )) as Bridge;
 
     await transitToken.approve(bridge.address, ethers.utils.parseEther('100000'));
     await swapToken.approve(bridge.address, ethers.utils.parseEther('100000'));
 
-    return { bridge, transitToken, swapToken, DEX, routerCrossChain };
+    return { bridge, whitelist, transitToken, swapToken, DEX, routerCrossChain };
 };
