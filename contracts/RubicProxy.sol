@@ -20,7 +20,9 @@ import 'rubic-bridge-base/contracts/errors/Errors.sol';
 import 'rubic-whitelist-contract/contracts/interfaces/IRubicWhitelist.sol';
 
 error DifferentAmountSpent();
+// This error throws in routerCall function
 error ProviderNotAvailable(address _router, address _gateway);
+// This error throws in routerCallNative since there is no _gateway parameter
 error RouterNotAvailable(address _router);
 
 /**
@@ -82,12 +84,15 @@ contract RubicProxy is OnlySourceFunctionality {
 
             if (!(whitelistRegistry.isWhitelistedCrossChain(_gateway))) {
                 if (isRouterAvailable) {
+                    // If the router is available than it's eq 0x000 address in the error
                     revert ProviderNotAvailable(address(0), _gateway);
                 } else {
+                    // If both are not available than both are passed into the error
                     revert ProviderNotAvailable(_params.router, _gateway);
                 }
             } else {
                 if (!isRouterAvailable) {
+                    // If the gateway is available than it's eq 0x000 address in the error
                     revert ProviderNotAvailable(_params.router, address(0));
                 }
             }
