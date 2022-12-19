@@ -253,6 +253,16 @@ module.exports = {
             live: true,
             saveDeployments: true,
             accounts: [`0x${DEFAULT_PRIVATE_KEY}`]
+        },
+        boba_bnb: {
+            url: `https://bnb.boba.network`,
+            chainId: 56288,
+            accounts: [`0x${DEFAULT_PRIVATE_KEY}`]
+        },
+        boba_avax: {
+            url: `https://avax.boba.network`,
+            chainId: 43288,
+            accounts: [`0x${DEFAULT_PRIVATE_KEY}`]
         }
     },
     etherscan: {
