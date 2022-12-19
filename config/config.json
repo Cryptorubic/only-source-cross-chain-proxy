@@ -264,6 +264,22 @@
             "routers": [ 
                 "0x362fA9D0bCa5D19f743Db50738345ce2b40eC99f"
             ]
+        },
+        {
+            "id": 43288,
+            "name": "boba_avax",
+            "routers": [
+                "0x292fC50e4eB66C3f6514b9E402dBc25961824D62",
+                "0xE82948b631Cf822c81b09fA5ae393B24A4820808"
+            ]
+        },
+        {
+            "id": 56288,
+            "name": "boba_bnb",
+            "routers": [
+                "0xB79A4F5828eb55c10D7abF4bFe9a9f5d11aA84e0",
+                "0x37E44E4400A43F0c27ed42cF6EBEE3493A3e4d2f"
+            ]
         }
     ]
 }
